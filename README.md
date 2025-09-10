@@ -1,61 +1,49 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+### 2. Solving the CORS Issue (for Laravel 12)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+With Laravel 12, handling CORS is much simpler because the necessary middleware is already part of the framework. We just need to publish the configuration file and tell it which origins (our Vue app) are allowed to make requests.
 
-## About Laravel
+**1. Publish the CORS Configuration File**
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+First, run the following artisan command in your Laravel project's terminal. This command copies the default CORS configuration file from Laravel's core files into your project's `config` directory so you can edit it.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+```bash
+php artisan vendor:publish --tag=cors
+```
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+This will create a new file at `config/cors.php`.
 
-## Learning Laravel
+**2. Configure Allowed Origins**
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Now, open the newly created `config/cors.php` file. You will see several options, but the most important one for us is `'allowed_origins'`.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+You need to add the URL of your Vue development server to this array. When using Vite, the default URL is `http://localhost:5173`.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Find this section in the file:
 
-## Laravel Sponsors
+```php
+// In config/cors.php
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+    'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
-### Premium Partners
+    'allowed_methods' => ['*'],
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+    'allowed_origins' => ['*'], // <-- LOOK FOR THIS LINE
 
-## Contributing
+    'allowed_origins_patterns' => [],
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+    'allowed_headers' => ['*'],
+```
 
-## Code of Conduct
+Change the `'allowed_origins'` line to specifically list your Vue app's address:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```php
+// In config/cors.php
 
-## Security Vulnerabilities
+    'allowed_origins' => [
+        'http://localhost:5173', // <-- ADD YOUR VUE APP's URL HERE
+    ],
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+> **Note:** The default `'paths' => ['api/*']` setting is perfect. It means these CORS rules will automatically apply to any route in your `routes/api.php` file, which is exactly what we want.
 
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+And that's it! Your Laravel 12 backend is now correctly configured to accept API requests from your Vue app. The rest of the steps for setting up the Vue frontend remain the same.
